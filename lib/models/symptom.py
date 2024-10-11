@@ -11,5 +11,16 @@ class Symptom:
     def __repr__(self):
         return (
             f'<symptom {self.id}: {self.description}, '+
-            f'Patient ID: {self.patient_id}, Disease ID: {self.patient_id}>'
+            f'Patient ID: {self.patient_id}, Disease ID: {self.disease_id}>'
         )
+    
+    @property
+    def description(self):
+        return self._description
+    @description.setter
+    def description(self,description):
+       if isinstance(description, str) and 30<= len(description)<= 500:
+           self._description = description
+       else:
+           raise ValueError('description must be between 30 and 500 characters inclusive.')
+
