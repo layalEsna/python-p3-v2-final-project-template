@@ -1,4 +1,8 @@
 # lib/cli.py
+import sqlite3
+CONN = sqlite3.connect('medical_records.db')
+CURSOR = CONN.cursor()
+
 
 from helpers import (
     exit_program,
@@ -7,15 +11,21 @@ from helpers import (
 
 
 def main():
-    while True:
-        menu()
-        choice = input("> ")
-        if choice == "0":
-            exit_program()
-        elif choice == "1":
-            helper_1()
-        else:
-            print("Invalid choice")
+    try:
+ 
+  
+        while True:
+            menu()
+            choice = input("> ")
+            if choice == "0":
+                exit_program()
+            elif choice == "1":
+                helper_1()
+            else:
+                print("Invalid choice")
+    finally:
+        CURSOR.close()
+        CONN.close()
 
 
 def menu():
