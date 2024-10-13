@@ -27,15 +27,22 @@ class Symptom:
            raise ValueError('description must be between 30 and 500 characters inclusive.')
     @classmethod
     def create_table(cls):
+        '''Create the symptoms table in the database.'''
+
         sql = '''
             CREATE TABLE IF NOT EXISTS symptoms(
-            id INTEGER PRIMARY KEY, description TEXT, FOREIGN KEY (patient_id) REFERENCES patients(id), FOREIGN KEY (disease_id) REFERENCES diseases(id)
+            id INTEGER PRIMARY KEY, description TEXT,
+            patient_id INTEGER,
+            disease_id INTEGER,
+            FOREIGN KEY (patient_id) REFERENCES patients(id),
+            FOREIGN KEY (disease_id) REFERENCES diseases(id)
             )
         '''
         CURSOR.execute(sql)
         CONN.commit()
     @classmethod
     def drop_table(cls):
+        '''Drop the symptoms table from the database'''
         sql = '''
              DROP TABLE IF EXISTS symptoms
         '''
@@ -43,6 +50,7 @@ class Symptom:
         CONN.commit()
 
     def save(self):
+        '''Insert the Symptom instance into the database and save the ID.'''
         sql = '''
              INSERT INTO symptoms(description, patient_id, disease_id) 
              VALUES(?,?,?)  
@@ -53,12 +61,15 @@ class Symptom:
         type(self).all[self.id] = self
 
     @classmethod
+
     def create(cls, description, patient_id, disease_id):
+        '''Create and save a new Symptom instance.'''
         symptom = cls(description, patient_id, disease_id)
         symptom.save()
         return symptom
     
     def update(self):
+        '''Update an existing Symptom record in the database.'''
         sql = '''
              UPDATE symptoms
              SET description = ?, patient_id = ?, disease_id = ?
@@ -68,6 +79,7 @@ class Symptom:
         CONN.commit()
 
     def delete(self):
+        '''Delete the Symptom record from the database.'''
         sql = '''
              DELETE FROM symptoms
              WHERE id = ?
@@ -80,6 +92,8 @@ class Symptom:
 
     @classmethod 
     def instance_from_db(cls, row):
+       '''Return a Symptom instance based on a database row.'''
+        
        symptom = cls.all.get(row[0])
        if symptom:
            symptom.description = row[1]
@@ -93,6 +107,7 @@ class Symptom:
     
     @classmethod
     def get_all(cls):
+        '''Return a list of all Symptom instances from the database.'''
         symptoms = []
         sql = '''
              SELECT *
@@ -106,6 +121,7 @@ class Symptom:
     
     @classmethod
     def find_by_id(cls, id):
+        '''Find and return a Symptom instance by ID.'''
         sql = '''
              SELECT *
              FROM symptoms
@@ -115,15 +131,21 @@ class Symptom:
         return cls.instance_from_db(row) if row else None
     @classmethod
     def find_by_description(cls, description):
+        '''Find and return a list of Symptom instances by description.'''
+        symptoms = []
         sql = '''
              SELECT *
              FROM symptoms
              WHERE description = ?
         '''
-        row = CURSOR.execute(sql, (description, )).fetchone()
-        return cls.instance_from_db(row) if row else None
+        rows= CURSOR.execute(sql, (description, )).fetchall()
+        for row in rows:
+            symptom = cls.instance_from_db(row) 
+            symptoms.append(symptom)
+        return symptoms if symptoms else None
     @classmethod
     def find_by_patient_id(cls, patient_id):
+        '''Find and return a list of Symptom instances by patient ID.'''
         patient_symptoms = []
         sql = '''
              SELECT *

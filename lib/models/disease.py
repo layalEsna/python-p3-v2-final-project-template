@@ -45,13 +45,18 @@ class Disease:
         CONN.commit()
     @classmethod
     def drop_table(cls):
+        '''Drop the symptoms table from the database.'''
         sql = '''
-            DROP TABLE IF EXISTS diseases
+             DROP TABLE 
+             IF EXISTS diseases
         '''
+        
         CURSOR.execute(sql)
         CONN.commit()
 
     def save(self):
+        '''Insert the Disease instance into the database and save the ID.
+'''
         sql = '''
              INSERT INTO diseases(name, symptoms)
              VALUES(?,?)
@@ -64,11 +69,13 @@ class Disease:
 
     @classmethod
     def create(cls, name, symptoms=None):
+        '''Create and save a new Disease instance.'''
         disease = cls(name, symptoms)
         disease.save()
         return disease
     
     def update(self):
+        '''Update an existing Disease record in the database.'''
         symptoms_str = ', '.join(self.symptoms)
         sql = '''
              UPDATE diseases
@@ -80,6 +87,7 @@ class Disease:
         CONN.commit()
 
     def delete(self):
+        '''Delete the Disease record from the database.'''
         sql = '''
              DELETE FROM diseases
              WHERE id = ?
@@ -92,6 +100,8 @@ class Disease:
 
     @classmethod
     def instance_from_db(cls, row):
+        '''Return a Disease instance based on a database row.'''
+        
         disease = cls.all.get(row[0])
         symptom_list = row[2].split(', ') if row[2] else []
         if disease:
@@ -105,6 +115,8 @@ class Disease:
     
     @classmethod
     def get_all(cls):
+        '''Return a list of all Disease instances from the database.'''
+        
         diseases = []
         sql = '''
              SELECT *
@@ -117,6 +129,7 @@ class Disease:
         return diseases
     @classmethod
     def find_by_id(cls, id):
+        '''Find and return a Disease instance by ID.'''
         sql = '''
              SELECT *
              FROM diseases
@@ -127,6 +140,8 @@ class Disease:
     
     @classmethod
     def find_by_name(cls, name):
+        '''Find and return a Disease instance by name.'''
+        
         sql = '''
              SELECT * 
              FROM diseases

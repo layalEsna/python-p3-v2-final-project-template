@@ -3,17 +3,16 @@ from lib.cli import CONN, CURSOR
 
 class Patient:
     all = {}
-    def __init__(self, name, last_name, age ,symptoms=None, id=None):
+    def __init__(self, name, last_name, age , id=None):
         self.id = id
         self.name = name
         self.last_name = last_name
         self.age = age
-        self.symptoms = symptoms or []
+        
 
     def __repr__(self):
         return (
-        f'<Patient {self.id}: {self.name}, {self.last_name}, {self.age}, ' + 
-            f'Symptom: {self.symptoms}>'
+        f'<Patient {self.id}: {self.name}, {self.last_name}, {self.age}>'
         )
     @property
     def name(self):
@@ -45,15 +44,15 @@ class Patient:
            self._age = age
        else: 
            raise ValueError('Age must be an integer between 18 and 100 inclusive.')
-    @property
-    def symptoms(self):
-        return self._symptoms
-    @symptoms.setter
-    def symptoms(self,symptoms):
-       if isinstance(symptoms, list):
-           self._symptoms = symptoms
-       else:
-           raise ValueError('Symptoms must be a list.')
+    # @property
+    # def symptoms(self):
+    #     return self._symptoms
+    # @symptoms.setter
+    # def symptoms(self,symptoms):
+    #    if isinstance(symptoms, list):
+    #        self._symptoms = symptoms
+    #    else:
+    #        raise ValueError('Symptoms must be a list.')
        
     @classmethod
     def create_table(cls):
@@ -62,8 +61,8 @@ class Patient:
             id INTEGER PRIMARY KEY,
             name TEXT,
             last_name TEXT,
-            age INTEGER,
-            symptoms TEXT
+            age INTEGER
+          
             )
         '''
         CURSOR.execute(sql)
@@ -78,34 +77,38 @@ class Patient:
         CONN.commit()
 
     def save(self):
+        '''Insert the Patient instance into the database and save the ID.
+'''
         sql = '''
-             INSERT INTO patients(name, last_name, age, symptoms)
-             VALUES(?,?,?,?)
+             INSERT INTO patients(name, last_name, age)
+             VALUES(?,?,?)
         '''
-
-        symptoms_str = ', '.join(self.symptoms)
-        CURSOR.execute(sql,(self.name, self.last_name, self.age,  symptoms_str))
+        CURSOR.execute(sql,(self.name, self.last_name, self.age))
         CONN.commit()
         self.id = CURSOR.lastrowid
         type(self).all[self.id] = self
         
     @classmethod
-    def create(cls, name, last_name,  age, symptoms=None):
-        patient = cls(name, last_name, age, symptoms)
+    def create(cls, name, last_name,  age):
+        '''Create and save a new Patient instance.'''
+        patient = cls(name, last_name, age)
         patient.save()
         return patient
     
     def update(self):
+        '''Update an existing Patient record in the database.'''
         sql = '''
              UPDATE patients
-             SET name = ?, last_name= ?, age = ?,symptoms = ?
+             SET name = ?, last_name= ?, age = ?
              WHERE id = ?
         '''
-        symptom_str = ', '.join(self.symptoms)
-        CURSOR.execute(sql, (self.name, self.last_name, self.age, symptom_str, self.id))
+       
+        CURSOR.execute(sql, (self.name, self.last_name, self.age, self.id))
         CONN.commit()
 
     def delete(self):
+        '''Delete the Patient record from the database.'''
+       
         sql = '''
              DELETE FROM patients
              WHERE id = ?
@@ -118,21 +121,23 @@ class Patient:
 
     @classmethod
     def instance_from_db(cls, row):
+        '''Return a Patient instance based on a database row.'''
         patient = cls.all.get(row[0])
-        symptom_list = row[4].split(', ') if row[4] else []
         if patient:
             patient.name = row[1]
             patient.last_name = row[2]
             patient.age = row[3]
-            patient.symptoms = symptom_list
+            
         else:
-            patient = cls(row[1], row[2], row[3], symptom_list)
+            patient = cls(row[1], row[2], row[3])
             patient.id = row[0]
             cls.all[patient.id] = patient
         return patient
     
     @classmethod
     def get_all(cls):
+        '''Return a list of all Patient instances from the database.'''
+        
         patients = []
         sql = '''
              SELECT *
@@ -146,6 +151,7 @@ class Patient:
     
     @classmethod
     def find_by_id(cls, id):
+        '''Find and return a Patient instance by ID.'''
         sql = '''
              SELECT * 
              FROM patients
@@ -156,6 +162,7 @@ class Patient:
     
     @classmethod
     def find_by_last_name(cls, last_name):
+        '''Find and return a Patient instance by last name.'''
         sql = '''
              SELECT *
              FROM patients
@@ -164,19 +171,22 @@ class Patient:
         row = CURSOR.execute(sql, (last_name, )).fetchone()
         return cls.instance_from_db(row) if row else None
     
-    def get_symptoms(self):
-        symptoms_list = []
-        from models.symptom import Symptom
-        sql = '''
-             SELECT *
-             FROM symptoms
-             WHERE patient_id = ?
-        '''
-        rows = CURSOR.execute(sql, (self.id, )).fetchall()
-        for row in rows:
-            symptom = Symptom.instance_from_db(row)
-            symptoms_list.append(symptom)
-        return  symptoms_list
+    # def get_symptoms(self):
+    #     symptoms_list = []
+    #     from models.symptom import Symptom
+    #     sql = '''
+    #          SELECT *
+    #          FROM symptoms
+    #          WHERE patient_id = ?
+    #     '''
+    #     rows = CURSOR.execute(sql, (self.id, )).fetchall()
+    #     for row in rows:
+    #         symptom = Symptom.instance_from_db(row)
+    #         symptoms_list.append(symptom)
+    #     return  symptoms_list
+              
+
+        
     
     
 
