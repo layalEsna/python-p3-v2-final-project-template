@@ -157,3 +157,21 @@ class Symptom:
             symptom = cls.instance_from_db(row)
             patient_symptoms.append(symptom)
         return patient_symptoms if patient_symptoms else None
+     
+    @classmethod
+    def find_disease_symptoms(cls, disease_id):
+        from models.symptom import Symptom
+        '''Return a list of all symptoms for a disease.'''
+        disease_symptom_list = []
+        sql = '''
+             SELECT *
+             FROM symptoms
+             WHERE disease_id = ?
+            '''
+        rows = CURSOR.execute(sql, (disease_id, )).fetchall()
+        for row in rows:
+          symptoms = Symptom.instance_from_db(row)
+          disease_symptom_list.append(symptoms)
+        return disease_symptom_list if disease_symptom_list else []
+    
+    

@@ -3,6 +3,7 @@ from lib.cli import CONN, CURSOR
 
 class Patient:
     all = {}
+    all_patients = []
     def __init__(self, name, last_name, age , id=None):
         self.id = id
         self.name = name
@@ -44,16 +45,7 @@ class Patient:
            self._age = age
        else: 
            raise ValueError('Age must be an integer between 18 and 100 inclusive.')
-    # @property
-    # def symptoms(self):
-    #     return self._symptoms
-    # @symptoms.setter
-    # def symptoms(self,symptoms):
-    #    if isinstance(symptoms, list):
-    #        self._symptoms = symptoms
-    #    else:
-    #        raise ValueError('Symptoms must be a list.')
-       
+         
     @classmethod
     def create_table(cls):
         sql = '''
@@ -171,23 +163,24 @@ class Patient:
         row = CURSOR.execute(sql, (last_name, )).fetchone()
         return cls.instance_from_db(row) if row else None
     
-    # def get_symptoms(self):
-    #     symptoms_list = []
-    #     from models.symptom import Symptom
-    #     sql = '''
-    #          SELECT *
-    #          FROM symptoms
-    #          WHERE patient_id = ?
-    #     '''
-    #     rows = CURSOR.execute(sql, (self.id, )).fetchall()
-    #     for row in rows:
-    #         symptom = Symptom.instance_from_db(row)
-    #         symptoms_list.append(symptom)
-    #     return  symptoms_list
-              
-
-        
+    def get_patient_symptoms(self):
+        '''Retrieve a list of all symptoms associated with this patient.'''
+        symptoms_list = []
+        from models.symptom import Symptom
+        sql = '''
+             SELECT *
+             FROM symptoms
+             WHERE patient_id = ?
+        '''
+        rows = CURSOR.execute(sql, (self.id, )).fetchall()
+        for row in rows:
+            symptom = Symptom.instance_from_db(row)
+            symptoms_list.append(symptom)
+        return  symptoms_list if symptoms_list else []
     
+   
+            
+
     
 
     

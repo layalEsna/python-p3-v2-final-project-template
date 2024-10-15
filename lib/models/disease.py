@@ -29,10 +29,11 @@ class Disease:
         return self._symptoms
     @symptoms.setter
     def symptoms(self,symptoms):
-       if isinstance(symptoms, list):
+       if isinstance(symptoms, list) and len(symptoms) > 0:
            self._symptoms = symptoms
        else:
-           raise ValueError('Symptoms must be a list.')
+           raise ValueError('Symptoms must be a non-empty list.')
+  
        
     @classmethod
     def create_table(cls):
@@ -129,7 +130,7 @@ class Disease:
         return diseases
     @classmethod
     def find_by_id(cls, id):
-        '''Find and return a Disease instance by ID.'''
+        '''Find and return a Disease instance by ID from data base.'''
         sql = '''
              SELECT *
              FROM diseases
@@ -149,6 +150,40 @@ class Disease:
         '''
         row = CURSOR.execute(sql, (name, )).fetchone()
         return cls.instance_from_db(row) if row else None
+    
+    def get_disease_symptoms(self):
+        disease_symptoms = []
+        from models.symptom import Symptom
+        sql = '''
+             SELECT *
+             FROM symptoms 
+             WHERE disease_id = ?
+        '''
+        
+        rows = CURSOR.execute(sql, (self.id, )).fetchall()
+        
+        for row in rows:
+            symptoms = Symptom.instance_from_db(row)
+            disease_symptoms.append(symptoms)
+        return disease_symptoms if disease_symptoms else []
+    
+    @classmethod
+    def disease_symptoms(cls, disease_id):
+        '''Retrieve all symptoms related to a specific disease, using the disease_id.'''
+        from models.symptom import Symptom
+        symptom_list = []
+        sql = '''
+             SELECT * 
+             FROM symptoms
+             WHERE disease_id = ?
+        '''
+        rows = CURSOR.execute(sql, (disease_id, )).fetchall()
+        for row in rows:
+            symptoms = Symptom.instance_from_db(row)
+            symptom_list.append(symptoms)
+        return symptom_list if symptom_list else []
+
+      
 
 
 
